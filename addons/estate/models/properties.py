@@ -6,6 +6,7 @@ class Properties(models.Model):
     _name = 'estate.properties'
     _description = 'Properties'
 
+
     name = fields.Char(required=True)
     property_type_id = fields.Many2one('estate.property.type')
     tag_ids = fields.Many2many('estate.property.tag')
@@ -16,7 +17,7 @@ class Properties(models.Model):
     postcode = fields.Char()
     date_availability = fields.Date(default=lambda self: fields.Date.today(), copy=False)
     expected_price = fields.Float(required=True)
-    selling_price = fields.Float()
+    selling_price = fields.Float(compute='_compute_selling_price')
     bedrooms = fields.Integer(default=2)
     living_area = fields.Integer()
     facades = fields.Integer()
@@ -40,10 +41,29 @@ class Properties(models.Model):
         ('cancel', 'Canceled')
     ], default='new')
 
+    _sql_constraints = [
+        ('check_expected_price_positive', 'CHECK(expected_price > 0)', 'Expected Price must be strictly positive.'),
+        ('check_selling_price_positive', 'CHECK(selling_price >= 0)', 'Selling Price must be positive.'),
+    ]
+
+    @api.constrains('selling_price')
+    def _check_selling_price(self):
+        for property_record in self:
+            if property_record.selling_price < 0.9 * property_record.expected_price:
+                raise UserError(_("Selling Price cannot be lower than 90% of Expected Price."))
+
     @api.depends('living_area', 'garden_area')
     def _compute_total(self):
         for rec in self:
             rec.total_area = rec.living_area + rec.garden_area
+
+    @api.depends('offer_ids', 'expected_price')
+    def _compute_selling_price(self):
+        for property_record in self:
+            if property_record.offer_ids:
+                property_record.selling_price = max(property_record.offer_ids.mapped('price'))
+            else:
+                property_record.selling_price = 0.0
 
     @api.depends('offer_ids', "best_offer")
     def _compute_offer_price(self):

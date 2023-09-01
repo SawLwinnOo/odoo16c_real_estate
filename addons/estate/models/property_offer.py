@@ -17,6 +17,10 @@ class PropertyOffer(models.Model):
         ('refused', 'Refused'),
     ],copy=False)
 
+    _sql_constraints = [
+        ('check_offer_price_positive', 'CHECK(price > 0)', 'Offer Price must be strictly positive.'),
+    ]
+
     @api.onchange("property_id", 'status')
 
     def onchange_state(self):
