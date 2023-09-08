@@ -6,6 +6,7 @@ from datetime import timedelta
 class PropertyOffer(models.Model):
     _name = 'estate.property.offer'
     _description = 'PropertyOffer'
+    _order = "price desc"
 
     price = fields.Float()
     validity = fields.Integer(default=7)
@@ -21,11 +22,10 @@ class PropertyOffer(models.Model):
         ('check_offer_price_positive', 'CHECK(price > 0)', 'Offer Price must be strictly positive.'),
     ]
 
-    @api.onchange("property_id", 'status')
-
+    @api.onchange('status')
     def onchange_state(self):
+        ...
 
-        pass
 
     @api.depends('create_date', 'validity')
     def _compute_date_deadline(self):

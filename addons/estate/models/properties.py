@@ -5,7 +5,7 @@ from odoo.exceptions import UserError
 class Properties(models.Model):
     _name = 'estate.properties'
     _description = 'Properties'
-
+    _order = "id desc"
 
     name = fields.Char(required=True)
     property_type_id = fields.Many2one('estate.property.type')
